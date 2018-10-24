@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	TEMPLATE_PREFIX = "healthcare"
+	TEMPLATE_PREFIX = "credential:templates"
 )
 
 var (
@@ -34,6 +34,6 @@ func MakeAddress(namespacePrefix, namespaceSuffix string) string {
 
 // MakeIdentifierAddress . . .
 func MakeIdentifierAddress(prefix, owner, postfix string) string {
-	return prefix + Hexdigest(owner)[:8] + Hexdigest(postfix)[:60]
+	return prefix + Hexdigest(owner)[:32] + Hexdigest(postfix)[:32]
 }
 

@@ -4,12 +4,12 @@ import (
 	"github.com/rberg2/sawtooth-go-sdk/protobuf/processor_pb2"
 	"github.com/rberg2/sawtooth-go-sdk/processor"
 	"fmt"
-	"github.com/propsproject/pending-props/core/proto/pending_props_pb"
 	"github.com/golang/protobuf/proto"
+	"github.com/BadgeForce/credential-template-engine/core/proto"
 )
 
 type MethodHandler struct {
-	Handle func(*processor_pb2.TpProcessRequest, *processor.Context, *pending_props_pb.RPCRequest) error
+	Handle func(*processor_pb2.TpProcessRequest, *processor.Context, *credential_template_engine_pb.RPCRequest) error
 	Method string
 }
 
@@ -23,7 +23,7 @@ func (r *RPCClient) registerMethod(handler *MethodHandler) *RPCClient {
 }
 
 func (r *RPCClient) DelegateMethod(request *processor_pb2.TpProcessRequest, context *processor.Context) error {
-	var rpcRequest pending_props_pb.RPCRequest
+	var rpcRequest credential_template_engine_pb.RPCRequest
 	err := proto.Unmarshal(request.GetPayload(), &rpcRequest)
 	if err != nil {
 		return &processor.InvalidTransactionError{Msg: "malformed payload data"}
@@ -32,7 +32,7 @@ func (r *RPCClient) DelegateMethod(request *processor_pb2.TpProcessRequest, cont
 	return r.delegate(request, context, rpcRequest)
 }
 
-func (r *RPCClient) delegate(request *processor_pb2.TpProcessRequest, context *processor.Context, rpcRequest pending_props_pb.RPCRequest) error {
+func (r *RPCClient) delegate(request *processor_pb2.TpProcessRequest, context *processor.Context, rpcRequest credential_template_engine_pb.RPCRequest) error {
 	method := rpcRequest.GetMethod().String()
 
 	if methodHandler, exists := r.MethodHandlers[method]; exists {

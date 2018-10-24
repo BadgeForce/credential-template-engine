@@ -17,14 +17,12 @@ RUN echo "deb [arch=amd64] http://repo.sawtooth.me/ubuntu/ci xenial universe" >>
 
 ENV GOPATH=/go
 ENV PATH=$PATH:/usr/lib/go-1.9/bin
-RUN mkdir -p $GOPATH/src/github.com/BadgeForce/healthcare-tp
-WORKDIR $GOPATH/src/github.com/BadgeForce/healthcare-tp
+RUN mkdir -p $GOPATH/src/github.com/BadgeForce/credential-template-engine
+WORKDIR $GOPATH/src/github.com/BadgeForce/credential-template-engine
 COPY . .
 
 RUN make goget
 RUN make build
 
 EXPOSE 4004/tcp
-
-ENTRYPOINT ["./badgeforce-healthcare-tp"]
-CMD ["--help"]
+ENTRYPOINT ["./credential-template-engine"]

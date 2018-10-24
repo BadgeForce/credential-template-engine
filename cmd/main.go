@@ -6,7 +6,7 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/rberg2/sawtooth-go-sdk/logging"
-	"github.com/propsproject/pending-props/core"
+	"github.com/BadgeForce/credential-template-engine/core"
 )
 
 type Opts struct {

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package credential_template_engine_pb;
+
+enum Method {
+    CREATE = 0;
+    UPDATE = 1;
+    DELETE = 2;
+}
+
+message RPCRequest {
+    Method method = 1;
+    string params = 2;
+}

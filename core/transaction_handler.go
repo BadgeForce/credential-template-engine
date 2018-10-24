@@ -16,7 +16,7 @@ type TransactionHandler struct {
 }
 
 // FamilyName ...
-const FamilyName = "credential:templates" // move to configuration
+const FamilyName = "bf-credential-templates" // move to configuration
 
 // FamilyVersions ...
 var FamilyVersions = []string{"1.0"} // move to configuration
