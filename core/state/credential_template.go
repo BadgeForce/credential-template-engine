@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"encoding/json"
+	"github.com/BadgeForce/badgeforce-chain-node/core/common"
 )
 
 type CredentialTemplate struct {
@@ -34,6 +35,16 @@ func (c *CredentialTemplate) AsBytes() ([]byte, error) {
 	}
 
 	return b, nil
+}
+
+func (c *CredentialTemplate) StateAddress() string {
+	owner := common.NewPart(c.Owner, 0, 30)
+	name := common.NewPart(c.Name, 0, 30)
+	version := common.NewPart(c.Version, 0, 4)
+
+	addressParts := []*common.AddressPart{owner, name, version}
+	address, _ := common.NewAddress(NameSpaceMngr.NameSpaces[0]).AddParts(addressParts...).Build()
+	return address
 }
 
 func NewCredentialTemplate(name, owner, version, data string) *CredentialTemplate {

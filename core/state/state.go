@@ -7,12 +7,20 @@ import (
 	"github.com/rberg2/sawtooth-go-sdk/logging"
 	"fmt"
 	"github.com/BadgeForce/credential-template-engine/core/proto"
+	"github.com/BadgeForce/badgeforce-chain-node/core/common"
 )
 
-var logger = logging.Get()
+// @Todo move CredentialTemplatePrefix to configuration
+// CredentialTemplatePrefix ...
+const CredentialTemplatePrefix = "credential:templates"
+
+var (
+	logger = logging.Get()
+	NameSpaceMngr *common.NamespaceMngr
+)
 
 type State struct {
-	context *processor.Context
+	instance *common.State
 }
 
 type TransactionReceipt struct {
@@ -48,13 +56,12 @@ func (s *State) NewTemplateDeleteReceipt(name, version, address string) (*Transa
 	return receipt, b, err
 }
 
-
-func NewState(context *processor.Context) *State {
-	return &State{context: context}
+func (s *State) Context() *processor.Context {
+	return s.instance.Context
 }
 
-func (s *State) SaveTemplate(template *CredentialTemplate) error {
-	address := s.GetTemplateAddress(TemplatePrefix, template.Owner, template.Name)
+func (s *State) Save(template *CredentialTemplate) error {
+	address := template.StateAddress()
 	_, receiptBytes, err := s.NewTemplateSavedReceipt(template.Name, template.Version, address)
 	if err != nil {
 		logger.Warnf("unable to generate transaction receipt for template saved (%s)", err)
@@ -65,14 +72,12 @@ func (s *State) SaveTemplate(template *CredentialTemplate) error {
 		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("(%s)", err)}
 	}
 
-	_, err = s.context.SetState(map[string][]byte{
-		address: b,
-	})
+	_, err = s.Context().SetState(map[string][]byte{address: b})
 	if err != nil {
 		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("unable to save credential temlate (%s)", err)}
 	}
 
-	err = s.context.AddReceiptData(receiptBytes)
+	err = s.Context().AddReceiptData(receiptBytes)
 	if err != nil {
 		logger.Warnf("unable to add transaction receipt for template saved (%s)", err)
 	}
@@ -80,8 +85,8 @@ func (s *State) SaveTemplate(template *CredentialTemplate) error {
 	return nil
 }
 
-func (s *State) DeleteTemplates(addresses ...string) error {
-	_, err := s.context.DeleteState(addresses)
+func (s *State) Delete(addresses ...string) error {
+	_, err := s.Context().DeleteState(addresses)
 	if err != nil {
 		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("unable to delete credential temlate (%s)", err)}
 	}
@@ -92,7 +97,7 @@ func (s *State) DeleteTemplates(addresses ...string) error {
 			logger.Warnf("unable to generate transaction receipt for template saved (%s)", err)
 		}
 
-		err = s.context.AddReceiptData(receiptBytes)
+		err = s.Context().AddReceiptData(receiptBytes)
 		if err != nil {
 			logger.Warnf("unable to add transaction receipt for template saved (%s)", err)
 		}
@@ -103,7 +108,7 @@ func (s *State) DeleteTemplates(addresses ...string) error {
 }
 
 func (s *State) GetTemplates(address ...string) ([]CredentialTemplate, error) {
-	state, err := s.context.GetState(address)
+	state, err := s.Context().GetState(address)
 	if err != nil {
 		return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not get state (%s)", err)}
 	}
@@ -121,6 +126,10 @@ func (s *State) GetTemplates(address ...string) ([]CredentialTemplate, error) {
 	return templates, nil
 }
 
-func (s *State) GetTemplateAddress(prefix, owner, name string) string {
-	return MakeIdentifierAddress(prefix, owner, name)
+func NewTemplateState(context *processor.Context) *State {
+	return &State{common.NewStateInstance(context)}
+}
+
+func init()  {
+	NameSpaceMngr = common.NewNamespaceMngr().RegisterNamespaces(CredentialTemplatePrefix)
 }

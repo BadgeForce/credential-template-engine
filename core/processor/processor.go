@@ -1,23 +1,20 @@
-package core
+package processor
 
 import (
 	"github.com/BadgeForce/badgeforce-chain-node/core/common"
 	"sync"
 	"github.com/BadgeForce/credential-template-engine/core/rpc"
 	"github.com/rberg2/sawtooth-go-sdk/processor"
+	"github.com/BadgeForce/credential-template-engine/core/state"
 )
 
 // @Todo move FamilyName to configuration
 // FamilyName processor family name
 const FamilyName = "credential-templates"
 
-// @Todo move CredentialTemplatePrefix to configuration
-// CredentialTemplatePrefix ...
-const CredentialTemplatePrefix = "credential:templates"
-
 // @Todo move NameSpaces to configuration
 // Namespaces transaction processor namespaces
-var Namespaces = []string{CredentialTemplatePrefix}
+var Namespaces = state.NameSpaceMngr.NameSpaces
 
 // @Todo move FamilyVersions to configuration
 // FamilyVersions transaction processor versions

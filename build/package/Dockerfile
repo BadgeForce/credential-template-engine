@@ -21,7 +21,7 @@ RUN mkdir -p $GOPATH/src/github.com/BadgeForce/credential-template-engine
 WORKDIR $GOPATH/src/github.com/BadgeForce/credential-template-engine
 COPY . .
 
-RUN make goget
+RUN make deps
 RUN make build
 
 EXPOSE 4004/tcp

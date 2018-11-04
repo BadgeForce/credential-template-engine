@@ -18,25 +18,15 @@ services:
 
   settings-tp:
     image: hyperledger/sawtooth-settings-tp:1.0
-    container_name: sawtooth-settings-tp-default
+    container_name: sawtooth-settings-tp-cte
     depends_on:
       - validator
     entrypoint: settings-tp -vv -C tcp://validator:4004
     networks:
-      - sample-network
-  credential-template-engine:
-    image: credential-template-engine:latest
-    depends_on:
-      - validator
-    container_name: credential-template-engine
-    entrypoint: "bash -c \"\
-        ./credential-template-engine -vv -C tcp://validator:4004 \
-      \""
-    networks:
-      - sample-network
+      - sample-network-cte
   validator:
     image: hyperledger/sawtooth-validator
-    container_name: sawtooth-validator-default
+    container_name: sawtooth-validator-cte
     expose:
       - 4004
       - 8800
@@ -52,22 +42,22 @@ services:
           --bind network:tcp://eth0:8800 \
         \""
     networks:
-      - sample-network
+      - sample-network-cte
 
   rest-api:
     image: hyperledger/sawtooth-rest-api:1.0
-    container_name: sawtooth-rest-api-default
+    container_name: sawtooth-rest-api-cte
     ports:
       - "8008:8008"
     depends_on:
       - validator
-      - credential-template-engine
+#      - credential-template-engine
     entrypoint: sawtooth-rest-api -C tcp://validator:4004 --bind rest-api:8008
     networks:
-      - sample-network
+      - sample-network-cte
   shell:
     image: hyperledger/sawtooth-all:1.0
-    container_name: sawtooth-shell-default
+    container_name: sawtooth-shell-cte
     depends_on:
       - rest-api
     entrypoint: "bash -c \"\
@@ -75,8 +65,8 @@ services:
         tail -f /dev/null \
         \""
     networks:
-      - sample-network
+      - sample-network-cte
 
 networks:
-  sample-network:
-    name: sample-network
+  sample-network-cte:
+    name: sample-network-cte

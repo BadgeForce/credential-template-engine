@@ -10,17 +10,17 @@ all: run
 docker-image:
 	docker build -f ${DOCKERFILE} -t ${OUT} .
 
-goget:
-	go get ${PKG}
+deps:
+	GO111MODULE=off go get ${PKG}
 
 build:
-	go build -i -v -o ${OUT} ${PKG}
+	GO111MODULE=off go build -i -v -o ${OUT} ${PKG}
 
 test:
-	@go test -short ${PKG_LIST}
+	GO111MODULE=off @go test -short ${PKG_LIST}
 
 vet:
-	@go vet ${PKG_LIST}
+	GO111MODULE=off @go vet ${PKG_LIST}
 
 lint:
 	@for file in ${GO_FILES} ;  do \
@@ -40,4 +40,4 @@ protos:
 clean:
 	-@rm ${OUT} ${OUT}-v*
 
-.PHONY: run protos runtp build docker-image vet lint out goget
+.PHONY: run protos runtp build docker-image vet lint out deps
