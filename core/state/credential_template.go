@@ -1,10 +1,11 @@
 package state
 
 import (
-	"time"
 	"crypto/md5"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"time"
+
 	"github.com/BadgeForce/badgeforce-chain-node/core/common"
 )
 
@@ -38,11 +39,15 @@ func (c *CredentialTemplate) AsBytes() ([]byte, error) {
 }
 
 func (c *CredentialTemplate) StateAddress() string {
-	owner := common.NewPart(c.Owner, 0, 30)
-	name := common.NewPart(c.Name, 0, 30)
-	version := common.NewPart(c.Version, 0, 4)
+	return TemplateStateAddress(c.Name, c.Owner, c.Version)
+}
 
-	addressParts := []*common.AddressPart{owner, name, version}
+func TemplateStateAddress(owner, name, version string) string {
+	o := common.NewPart(owner, 0, 30)
+	n := common.NewPart(name, 0, 30)
+	v := common.NewPart(version, 0, 4)
+
+	addressParts := []*common.AddressPart{o, n, v}
 	address, _ := common.NewAddress(NameSpaceMngr.NameSpaces[0]).AddParts(addressParts...).Build()
 	return address
 }
@@ -50,8 +55,8 @@ func (c *CredentialTemplate) StateAddress() string {
 func NewCredentialTemplate(name, owner, version, data string) *CredentialTemplate {
 	checkSum := md5.Sum([]byte(data))
 	return &CredentialTemplate{
-		Name: name,
-		Version: version,
+		Name:      name,
+		Version:   version,
 		CreatedAt: time.Now().Unix(),
 		Owner:     owner,
 		Data:      data,

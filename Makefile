@@ -34,8 +34,8 @@ out:
 	@echo ${OUT}-v${VERSION}
 
 protos:
-	protoc -I ./protos ./protos/payload.proto --go_out=./core/proto
-	protoc -I ./protos ./protos/payload.proto --js_out=import_style=commonjs,binary:./dev-cli/proto
+	protoc -I ./protos ./protos/template.proto ./protos/payload.proto --go_out=./core/proto
+	#protoc -I ./protos ./protos/template.proto ./protos/payload.proto --js_out=import_style=commonjs,binary:./dev-cli/proto
 
 clean:
 	-@rm ${OUT} ${OUT}-v*

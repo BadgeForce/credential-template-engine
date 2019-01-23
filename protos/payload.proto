@@ -1,5 +1,7 @@
 syntax = "proto3";
-package credential_template_engine_pb;
+package template_pb;
+
+import "template.proto";
 
 enum Method {
     CREATE = 0;
@@ -9,5 +11,5 @@ enum Method {
 
 message RPCRequest {
     Method method = 1;
-    string params = 2;
+    Template params = 2;
 }
