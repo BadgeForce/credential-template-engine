@@ -3,11 +3,9 @@
 
 package template_pb
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -18,7 +16,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type Method int32
 
@@ -33,7 +31,6 @@ var Method_name = map[int32]string{
 	1: "UPDATE",
 	2: "DELETE",
 }
-
 var Method_value = map[string]int32{
 	"CREATE": 0,
 	"UPDATE": 1,
@@ -43,9 +40,8 @@ var Method_value = map[string]int32{
 func (x Method) String() string {
 	return proto.EnumName(Method_name, int32(x))
 }
-
 func (Method) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_678c914f1bee6d56, []int{0}
+	return fileDescriptor_payload_18ae87993a33de77, []int{0}
 }
 
 type RPCRequest struct {
@@ -60,17 +56,16 @@ func (m *RPCRequest) Reset()         { *m = RPCRequest{} }
 func (m *RPCRequest) String() string { return proto.CompactTextString(m) }
 func (*RPCRequest) ProtoMessage()    {}
 func (*RPCRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_678c914f1bee6d56, []int{0}
+	return fileDescriptor_payload_18ae87993a33de77, []int{0}
 }
-
 func (m *RPCRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RPCRequest.Unmarshal(m, b)
 }
 func (m *RPCRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_RPCRequest.Marshal(b, m, deterministic)
 }
-func (m *RPCRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RPCRequest.Merge(m, src)
+func (dst *RPCRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RPCRequest.Merge(dst, src)
 }
 func (m *RPCRequest) XXX_Size() int {
 	return xxx_messageInfo_RPCRequest.Size(m)
@@ -96,14 +91,14 @@ func (m *RPCRequest) GetParams() *Template {
 }
 
 func init() {
-	proto.RegisterEnum("template_pb.Method", Method_name, Method_value)
 	proto.RegisterType((*RPCRequest)(nil), "template_pb.RPCRequest")
+	proto.RegisterEnum("template_pb.Method", Method_name, Method_value)
 }
 
-func init() { proto.RegisterFile("payload.proto", fileDescriptor_678c914f1bee6d56) }
+func init() { proto.RegisterFile("payload.proto", fileDescriptor_payload_18ae87993a33de77) }
 
-var fileDescriptor_678c914f1bee6d56 = []byte{
-	// 166 bytes of a gzipped FileDescriptorProto
+var fileDescriptor_payload_18ae87993a33de77 = []byte{
+	// 172 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2d, 0x48, 0xac, 0xcc,
 	0xc9, 0x4f, 0x4c, 0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x2e, 0x49, 0xcd, 0x2d, 0xc8,
 	0x49, 0x2c, 0x49, 0x8d, 0x2f, 0x48, 0x92, 0xe2, 0x83, 0x71, 0x20, 0x92, 0x4a, 0x19, 0x5c, 0x5c,
@@ -113,6 +108,6 @@ var fileDescriptor_678c914f1bee6d56 = []byte{
 	0x12, 0x4c, 0x0a, 0x8c, 0x1a, 0xdc, 0x46, 0xa2, 0x28, 0x8a, 0x43, 0xa0, 0xec, 0x20, 0xa8, 0x22,
 	0x2d, 0x1d, 0x2e, 0x36, 0x88, 0x01, 0x42, 0x5c, 0x5c, 0x6c, 0xce, 0x41, 0xae, 0x8e, 0x21, 0xae,
 	0x02, 0x0c, 0x20, 0x76, 0x68, 0x80, 0x0b, 0x88, 0xcd, 0x08, 0x62, 0xbb, 0xb8, 0xfa, 0xb8, 0x86,
-	0xb8, 0x0a, 0x30, 0x25, 0xb1, 0x81, 0x9d, 0x67, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0x5d, 0x9f,
-	0x73, 0x1f, 0xcc, 0x00, 0x00, 0x00,
+	0xb8, 0x0a, 0x30, 0x39, 0xf1, 0x46, 0x21, 0x3b, 0x3b, 0x89, 0x0d, 0xec, 0x5a, 0x63, 0x40, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0x8e, 0x83, 0x2a, 0x80, 0xdb, 0x00, 0x00, 0x00,
 }

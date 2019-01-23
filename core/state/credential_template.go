@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/BadgeForce/badgeforce-chain-node/core/common"
+	utils "github.com/BadgeForce/sawtooth-utils"
 )
 
 type CredentialTemplate struct {
@@ -43,12 +43,12 @@ func (c *CredentialTemplate) StateAddress() string {
 }
 
 func TemplateStateAddress(owner, name, version string) string {
-	o := common.NewPart(owner, 0, 30)
-	n := common.NewPart(name, 0, 30)
-	v := common.NewPart(version, 0, 4)
+	o := utils.NewPart(owner, 0, 30)
+	n := utils.NewPart(name, 0, 30)
+	v := utils.NewPart(version, 0, 4)
 
-	addressParts := []*common.AddressPart{o, n, v}
-	address, _ := common.NewAddress(NameSpaceMngr.NameSpaces[0]).AddParts(addressParts...).Build()
+	addressParts := []*utils.AddressPart{o, n, v}
+	address, _ := utils.NewAddress(NameSpaceMngr.NameSpaces[0]).AddParts(addressParts...).Build()
 	return address
 }
 

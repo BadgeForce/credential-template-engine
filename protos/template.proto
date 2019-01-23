@@ -1,5 +1,5 @@
 syntax = "proto3";
-
+option go_package = "template_pb";
 package template_pb;
 
 message Template {

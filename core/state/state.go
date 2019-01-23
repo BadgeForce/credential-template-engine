@@ -1,26 +1,28 @@
 package state
 
 import (
-	"github.com/rberg2/sawtooth-go-sdk/processor"
-	"time"
 	"encoding/json"
-	"github.com/rberg2/sawtooth-go-sdk/logging"
 	"fmt"
-	"github.com/BadgeForce/credential-template-engine/core/proto"
-	"github.com/BadgeForce/badgeforce-chain-node/core/common"
+	"time"
+
+	"github.com/BadgeForce/credential-template-engine/core/template_pb"
+	utils "github.com/BadgeForce/sawtooth-utils"
+	"github.com/rberg2/sawtooth-go-sdk/logging"
+	"github.com/rberg2/sawtooth-go-sdk/processor"
 )
 
-// @Todo move CredentialTemplatePrefix to configuration
+//TODO: move CredentialTemplatePrefix to configuration
+
 // CredentialTemplatePrefix ...
 const CredentialTemplatePrefix = "credential:templates"
 
 var (
-	logger = logging.Get()
-	NameSpaceMngr *common.NamespaceMngr
+	logger        = logging.Get()
+	NameSpaceMngr *utils.NamespaceMngr
 )
 
 type State struct {
-	instance *common.State
+	instance *utils.State
 }
 
 type TransactionReceipt struct {
@@ -37,7 +39,7 @@ func (s *State) NewTemplateSavedReceipt(name, version, address string) (*Transac
 		TemplateName:    name,
 		TemplateVersion: version,
 		StateAddress:    address,
-		Method: credential_template_engine_pb.Method_CREATE.String(),
+		Method:          template_pb.Method_CREATE.String(),
 	}
 
 	b, err := json.Marshal(receipt)
@@ -49,7 +51,7 @@ func (s *State) NewTemplateDeleteReceipt(name, version, address string) (*Transa
 		TemplateName:    name,
 		TemplateVersion: version,
 		StateAddress:    address,
-		Method: credential_template_engine_pb.Method_DELETE.String(),
+		Method:          template_pb.Method_DELETE.String(),
 	}
 
 	b, err := json.Marshal(receipt)
@@ -127,9 +129,9 @@ func (s *State) GetTemplates(address ...string) ([]CredentialTemplate, error) {
 }
 
 func NewTemplateState(context *processor.Context) *State {
-	return &State{common.NewStateInstance(context)}
+	return &State{utils.NewStateInstance(context)}
 }
 
-func init()  {
-	NameSpaceMngr = common.NewNamespaceMngr().RegisterNamespaces(CredentialTemplatePrefix)
+func init() {
+	NameSpaceMngr = utils.NewNamespaceMngr().RegisterNamespaces(CredentialTemplatePrefix)
 }
