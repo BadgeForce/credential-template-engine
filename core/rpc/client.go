@@ -15,13 +15,20 @@ var delegateCB = func(request *processor_pb2.TpProcessRequest) (string, interfac
 	var rpcRequest template_pb.RPCRequest
 	err := proto.Unmarshal(request.GetPayload(), &rpcRequest)
 	if err != nil {
-		return "", nil, &processor.InvalidTransactionError{Msg: "malformed payload data"}
+		return "", nil, &processor.InvalidTransactionError{Msg: "unable to unmarshal RPC request"}
 	}
 
-	return rpcRequest.GetMethod().String(), &rpcRequest, nil
+	switch method := rpcRequest.Method.(type) {
+	case *template_pb.RPCRequest_Create:
+		return template_pb.Method_CREATE.String(), method.Create, nil
+	case *template_pb.RPCRequest_Delete:
+		return template_pb.Method_DELETE.String(), method.Delete, nil
+	default:
+		return "", nil, &processor.InvalidTransactionError{Msg: "invalid RPC method"}
+	}
 }
 
 func init() {
-	handlers := []utils.MethodHandler{CreateHandle, UpdateHandle, DeleteHandle}
+	handlers := []utils.MethodHandler{CreateHandle, DeleteHandle}
 	Client = utils.NewRPCClient(handlers, delegateCB)
 }

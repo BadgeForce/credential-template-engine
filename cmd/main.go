@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/spf13/pflag"
-	"github.com/rberg2/sawtooth-go-sdk/logging"
-	"github.com/spf13/viper"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
-	"os"
+
 	"github.com/BadgeForce/credential-template-engine/core/processor"
+	"github.com/rberg2/sawtooth-go-sdk/logging"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 var logger = logging.Get()
@@ -16,17 +17,17 @@ var logger = logging.Get()
 func main() {
 	pflag.StringP("verbose", "v", "debug", "Log verbosity info|warning|debug")
 	pflag.String("validator", "", "Validator endpoint")
-	pflag.String("ethereum",  "", "ethereum node endpoint")
-	pflag.String("token",  "", "PROPS token contract address")
+	pflag.String("ethereum", "", "ethereum node endpoint")
+	pflag.String("token", "", "PROPS token contract address")
 	pflag.IntP("worker-queue", "q", 100, "Set the maximum queue size before rejecting process requests")
 	pflag.IntP("worker-threads", "t", 0, "Set the number of worker threads to use for processing requests in parallel")
 	pflag.StringP("config-file-path", "f", "", "Path to configuration file. Other arguments ignored if this flag is set")
 	pflag.BoolP("config-file", "c", false, "If flag is set configurations will be loaded from ConfigFilePath")
 	pflag.Parse()
 
-	viper.BindPFlag( "use-config", pflag.Lookup("config-file"))
+	viper.BindPFlag("use-config", pflag.Lookup("config-file"))
 	if viper.GetBool("use-config") {
-		viper.BindPFlag( "config-file-path", pflag.Lookup("config-file-path"))
+		viper.BindPFlag("config-file-path", pflag.Lookup("config-file-path"))
 		err := parseConfigFile()
 		if err != nil {
 			logger.Error("error parsing configuration file:  ", err)

@@ -11,6 +11,16 @@ enum Method {
 }
 
 message RPCRequest {
-    Method method = 1;
-    Template params = 2;
+    oneof method {
+        Create create = 1;
+        Delete delete = 2;
+    }
+}
+
+message Create {
+    Template params = 1;
+}
+
+message Delete {
+    repeated string addresses  = 1;
 }
