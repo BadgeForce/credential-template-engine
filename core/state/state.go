@@ -61,7 +61,7 @@ func VerifyTemplate(txtSignerPub string, template *template_pb.Template) (bool, 
 	issuerPub := template.GetData().GetIssuerPub()
 	sig := template.GetVerification().GetSignature()
 
-	if ok := utils.VerifySig(sig, txtSignerPub, b, false); !ok {
+	if ok := utils.VerifySig(sig, []byte(txtSignerPub), b, false); !ok {
 		return false, fmt.Errorf("error: transaction signer must also be owner who signs template (%s)", txtSignerPub)
 	} else if txtSignerPub != issuerPub {
 		return false, fmt.Errorf("error: transaction signer public key must match template issuer got (%s) want (%s)", issuerPub, txtSignerPub)
@@ -101,46 +101,69 @@ func (s *State) Save(template *template_pb.Template) error {
 	return nil
 }
 
-// func (s *State) Delete(addresses ...string) error {
-// 	_, err := s.Context().DeleteState(addresses)
-// 	if err != nil {
-// 		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("unable to delete credential temlate (%s)", err)}
-// 	}
+// Delete delete stored at each specified address in state
+func (s *State) Delete(issuerPub string, addresses ...string) error {
+	_, err := s.Context().DeleteState(addresses)
+	if err != nil {
+		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("unable to delete credential temlate (%s)", err)}
+	}
 
-// 	for _, address := range addresses {
-// 		_, receiptBytes, err := s.NewTemplateDeleteReceipt("", "", address)
-// 		if err != nil {
-// 			logger.Warnf("unable to generate transaction receipt for template saved (%s)", err)
-// 		}
+	for _, address := range addresses {
+		_, receiptBytes, err := s.GetTxtRecpt(template_pb.Method_DELETE, address, nil)
+		if err != nil {
+			logger.Warnf("unable to generate transaction receipt for template saved (%s)", err)
+		}
 
-// 		err = s.Context().AddReceiptData(receiptBytes)
-// 		if err != nil {
-// 			logger.Warnf("unable to add transaction receipt for template saved (%s)", err)
-// 		}
+		err = s.Context().AddReceiptData(receiptBytes)
+		if err != nil {
+			logger.Warnf("unable to add transaction receipt for template saved (%s)", err)
+		}
 
-// 	}
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
-// func (s *State) GetTemplates(address ...string) ([]CredentialTemplate, error) {
-// 	state, err := s.Context().GetState(address)
-// 	if err != nil {
-// 		return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not get state (%s)", err)}
-// 	}
+// GetTemplates get some templates stored at each specified address from state
+func (s *State) GetTemplates(issuerPub string, address ...string) ([]*template_pb.Template, error) {
 
-// 	templates := make([]CredentialTemplate, 0)
-// 	for _, value := range state {
-// 		var template CredentialTemplate
-// 		err := json.Unmarshal(value, &template)
-// 		if err != nil {
-// 			return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not unmarshal json data (%s)", err)}
-// 		}
-// 		templates = append(templates, template)
-// 	}
+	if addrs, ok := HasValidOwnership(issuerPub, address...); !ok {
+		return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not get state invalid ownership of templates (%s)", addrs)}
+	}
 
-// 	return templates, nil
-// }
+	state, err := s.Context().GetState(address)
+	if err != nil {
+		return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not get state (%s)", err)}
+	}
+
+	templates := make([]*template_pb.Template, 0)
+	for _, value := range state {
+		var template template_pb.Template
+		err := proto.Unmarshal(value, &template)
+		if err != nil {
+			return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not unmarshal proto data (%s)", err)}
+		}
+		templates = append(templates, &template)
+	}
+
+	return templates, nil
+}
+
+// HasValidOwnership using the first 30 bytes of a public key this func will
+// verify that the pub key is the first 30 bytes of each address indicating ownership.
+// If validation for one address fails, the entire validation process is will fail, array of address
+// that failed validation is returned along with a bool
+func HasValidOwnership(issuerPub string, addresses ...string) ([]string, bool) {
+	invalid := make([]string, 0)
+	prefix := issuerPub[0:30]
+	for _, address := range addresses {
+		if address[0:30] != prefix {
+			invalid = append(invalid, address)
+		}
+	}
+
+	return invalid, len(invalid) == 0
+}
 
 // TemplateStateAddress ...
 func TemplateStateAddress(issuerPub, name string, version *template_pb.Version) string {

@@ -1,7 +1,7 @@
 module github.com/BadgeForce/credential-template-engine
 
 require (
-	github.com/BadgeForce/sawtooth-utils v0.0.0-20190124073135-b60686322df3
+	github.com/BadgeForce/sawtooth-utils v0.0.0-20190126082239-82ffd0583503
 	github.com/golang/protobuf v1.2.0
 	github.com/rberg2/sawtooth-go-sdk v0.0.0-20180221212809-973726b4300f
 	github.com/spf13/pflag v1.0.3
