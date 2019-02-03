@@ -35,6 +35,7 @@ out:
 
 protos:
 	protoc -I ./protos ./protos/template.proto ./protos/payload.proto ./protos/transaction_receipts.proto --go_out=./core/template_pb
+	protoc -I ./protos ./protos/template.proto ./protos/payload.proto ./protos/transaction_receipts.proto --js_out=import_style=commonjs,binary:./dev-cli/proto
 
 clean:
 	-@rm ${OUT} ${OUT}-v*

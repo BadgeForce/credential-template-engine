@@ -53,7 +53,7 @@ func VerifyTemplate(txtSignerPub string, template *template_pb.Template) (bool, 
 		return false, fmt.Errorf("error: could not marshal proto (%s)", err)
 	}
 
-	expectedHash := template.GetVerification().GetProofIntegrityHash()
+	expectedHash := template.GetVerification().GetProofOfIntegrityHash()
 	if hash, ok := utils.VerifyPOIHash(b, expectedHash); !ok {
 		return false, fmt.Errorf("error: proof of integrity hash invalid got (%s) want (%s)", hash, expectedHash)
 	}

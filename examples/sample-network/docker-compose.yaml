@@ -25,7 +25,7 @@ services:
     networks:
       - sample-network-cte
   validator:
-    image: hyperledger/sawtooth-validator
+    image: hyperledger/sawtooth-validator:1.0
     container_name: sawtooth-validator-cte
     expose:
       - 4004

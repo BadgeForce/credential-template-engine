@@ -13,6 +13,8 @@ github.com/BadgeForce/sawtooth-utils v0.0.0-20190124073135-b60686322df3 h1:d8JKI
 github.com/BadgeForce/sawtooth-utils v0.0.0-20190124073135-b60686322df3/go.mod h1:q9UCFRhkwS7czAJinLeO2hHpOm4JypqG9F435Nv9B/c=
 github.com/BadgeForce/sawtooth-utils v0.0.0-20190126082239-82ffd0583503 h1:S43afaPcfDRRxkWjO4Le9n0JK3CiBnQL2jTf7l1KVlU=
 github.com/BadgeForce/sawtooth-utils v0.0.0-20190126082239-82ffd0583503/go.mod h1:q9UCFRhkwS7czAJinLeO2hHpOm4JypqG9F435Nv9B/c=
+github.com/BadgeForce/sawtooth-utils v0.0.0-20190203133736-90182d4a4853 h1:BEthys3na+/1tmum48UC9CWppSy/1v+fmRJMTuohAIo=
+github.com/BadgeForce/sawtooth-utils v0.0.0-20190203133736-90182d4a4853/go.mod h1:q9UCFRhkwS7czAJinLeO2hHpOm4JypqG9F435Nv9B/c=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 h1:w1UutsfOrms1J05zt7ISrnJIXKzwaspym5BTKGx93EI=
 github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412/go.mod h1:WPjqKcmVOxf0XSf3YxCJs6N6AOSrOx3obionmG7T0y0=
