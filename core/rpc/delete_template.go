@@ -1,31 +1,34 @@
 package rpc
 
 import (
-	"github.com/rberg2/sawtooth-go-sdk/protobuf/processor_pb2"
-	"github.com/rberg2/sawtooth-go-sdk/processor"
-	"github.com/BadgeForce/credential-template-engine/core/proto"
 	"fmt"
+
 	"github.com/BadgeForce/credential-template-engine/core/state"
+	"github.com/BadgeForce/credential-template-engine/core/template_pb"
+	"github.com/rberg2/sawtooth-go-sdk/processor"
+	"github.com/rberg2/sawtooth-go-sdk/protobuf/processor_pb2"
 )
 
+// DeleteTemplatesHandler RPC handler for deleteing templates
 type DeleteTemplatesHandler struct {
 	method string
 }
 
-func (handler *DeleteTemplatesHandler) Handle(request *processor_pb2.TpProcessRequest, context *processor.Context, rpcReq interface{}) error {
-	return handler.createTemplate(request, context, rpcReq.(*credential_template_engine_pb.RPCRequest))
+// Handle ...
+func (handler *DeleteTemplatesHandler) Handle(request *processor_pb2.TpProcessRequest, context *processor.Context, rpcData interface{}) error {
+	delete := rpcData.(*template_pb.Delete)
+	issuerPub := request.GetHeader().GetSignerPublicKey()
+	if addresses, valid := state.HasValidOwnership(issuerPub, delete.GetAddresses()...); !valid {
+		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("unable to delete credential template(s) invalid ownership (%s)", addresses)}
+	}
+
+	return state.NewTemplateState(context).Delete(issuerPub, delete.GetAddresses()...)
 }
 
+// Method ...
 func (handler *DeleteTemplatesHandler) Method() string {
 	return handler.method
 }
 
-func (handler *DeleteTemplatesHandler) createTemplate(request *processor_pb2.TpProcessRequest, context *processor.Context, rpcReq *credential_template_engine_pb.RPCRequest) error {
-	payload, err := NewPayloadDecoder(rpcReq).UnmarshalDelete()
-	if err != nil {
-		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not unmarshal template data from rpc request (%s)", err)}
-	}
-	return state.NewTemplateState(context).Delete(payload.Addresses...)
-}
-
-var DeleteHandle = &DeleteTemplatesHandler{credential_template_engine_pb.Method_DELETE.String()}
+// DeleteHandle ...
+var DeleteHandle = &DeleteTemplatesHandler{template_pb.Method_DELETE.String()}

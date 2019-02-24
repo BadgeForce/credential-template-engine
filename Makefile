@@ -11,16 +11,16 @@ docker-image:
 	docker build -f ${DOCKERFILE} -t ${OUT} .
 
 deps:
-	GO111MODULE=off go get ${PKG}
+	GO111MODULES=on go get -v ${PKG}
 
 build:
-	GO111MODULE=off go build -i -v -o ${OUT} ${PKG}
+	GO111MODULES=on go build -i -v -o ${OUT} ${PKG}
 
 test:
-	GO111MODULE=off @go test -short ${PKG_LIST}
+	GO111MODULES=on go test -short ${PKG_LIST}
 
 vet:
-	GO111MODULE=off @go vet ${PKG_LIST}
+	GO111MODULES=on go vet ${PKG_LIST}
 
 lint:
 	@for file in ${GO_FILES} ;  do \
@@ -34,8 +34,8 @@ out:
 	@echo ${OUT}-v${VERSION}
 
 protos:
-	protoc -I ./protos ./protos/payload.proto --go_out=./core/proto
-	protoc -I ./protos ./protos/payload.proto --js_out=import_style=commonjs,binary:./dev-cli/proto
+	protoc -I ./protos ./protos/template.proto ./protos/payload.proto ./protos/transaction_receipts.proto --go_out=./core/template_pb
+	protoc -I ./protos ./protos/template.proto ./protos/payload.proto ./protos/transaction_receipts.proto --js_out=import_style=commonjs,binary:./dev-cli/proto
 
 clean:
 	-@rm ${OUT} ${OUT}-v*

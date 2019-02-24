@@ -1,5 +1,8 @@
 syntax = "proto3";
-package credential_template_engine_pb;
+option go_package = "template_pb";
+package template_pb;
+
+import "template.proto";
 
 enum Method {
     CREATE = 0;
@@ -8,6 +11,16 @@ enum Method {
 }
 
 message RPCRequest {
-    Method method = 1;
-    string params = 2;
+    oneof method {
+        Create create = 1;
+        Delete delete = 2;
+    }
+}
+
+message Create {
+    Template params = 1;
+}
+
+message Delete {
+    repeated string addresses  = 1;
 }

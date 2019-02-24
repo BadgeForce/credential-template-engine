@@ -7,7 +7,8 @@ const colors = require('colors');
 const proto = require('google-protobuf');
 const any = require('google-protobuf/google/protobuf/any_pb.js');
 const payloads_pb = require('./proto/payload_pb');
-const ethUtil = require('ethereumjs-util');
+const template_pb = require('./proto/template_pb');
+const transaction_receipts_pb = require('./proto/transaction_receipts_pb');
 const context = createContext('secp256k1');
 const opn = require('opn');
 const axios = require('axios');
@@ -29,42 +30,79 @@ const CONFIG = {
             },
             templateAddress(owner, name, version) {
                 const prefix = this.prefixes.templates;
+                console.log(prefix);
                 const o = createHash('sha512').update(owner).digest('hex').substring(0, 30);
                 const n = createHash('sha512').update(name).digest('hex').substring(0, 30);
-                const v = createHash('sha512').update(version).digest('hex').toLowerCase().substring(0, 4);
+
+                const vrsn = `${version.getMajor()}.${version.getMinor()}.${version.getPatch()}`;
+                const v = createHash('sha512').update(vrsn).digest('hex').toLowerCase().substring(0, 4);
                 return `${prefix}${o}${n}${v}`
             },
         }
     }
 };
 
-const newRPCRequest = (params, method) => {
+const createRPCRequest = (template) => {
+    const create = new payloads_pb.Create()
+    create.setParams(template);
+
     const payload = new payloads_pb.RPCRequest();
-    payload.setMethod(method);
-    payload.setParams(params);
+    payload.setCreate(create);
+
     return payload;
 };
 
-const newTemplate = (owner) => {
-    return {
-        "name":"Hello World Template",
-        "version": "v1",
-        "owner": owner,
-        "data": JSON.stringify({"hello": "world"}),
-    };
+const getPOIHash = (templateData) => {
+    const bytes = templateData.serializeBinary();
+    return  createHash('md5').update(bytes).digest('hex');
+} 
+
+const newTemplate = (issuer, name, description, type, mjrNum, mnrNum, patchNum) => {
+    const template = new template_pb.Template();
+    const data = new template_pb.Data();
+    const version = new template_pb.Version();
+    const verification = new template_pb.Verification();
+
+    version.setMajor(mjrNum);
+    version.setMinor(mnrNum);
+    version.setPatch(patchNum);
+
+    data.setVersion(version);
+    data.setCreatedAt(Date.now());
+    data.setType(type);
+    data.setDescription(description);
+    data.setName(name);
+    data.setIssuerPub(issuer.getPublicKey().asHex());
+
+    const poiHash = getPOIHash(data);
+    const sig =  issuer.sign(Buffer.from(poiHash, 'hex'));
+
+    verification.setProofOfIntegrityHash(poiHash);
+    verification.setSignature(sig);
+
+    template.setData(data);
+    template.setVerification(verification);
+
+    return template;
 };
 
 const create = async (amount, recipient) => {
-    const owner = ethUtil.pubToAddress(signer.getPublicKey().asBytes(), true).toString('hex');
-    const template = newTemplate(owner);
+    const name = "First Test Template"
+        description = "This is just a test baby"
+        type = "TEST";
+        mjrNum = "1"
+        mnrNum = "0"
+        patchNum = "0"
 
-    const axioscRequest = newRPCRequest(JSON.stringify(template), payloads_pb.Method.CREATE);
-    const axioscRequestBytes = axioscRequest.serializeBinary();
+    const template = newTemplate(signer, name, description, type, mjrNum, mnrNum, patchNum);
+
+    const rpcReq = createRPCRequest(template);
+    const reqBytes = rpcReq.serializeBinary();
 
     //compute state address
-    const stateAddress = CONFIG.templates.namespaces.templateAddress(template.owner, template.name, template.version);
+    const stateAddress = CONFIG.templates.namespaces.templateAddress(template.getData().getIssuerPub(), template.getData().getName(), template.getData().getVersion());
 
-    // do the sawtooth thang ;)
+    // // do the sawtooth thang ;)
     const transactionHeaderBytes = protobuf.TransactionHeader.encode({
         familyName: CONFIG.templates.familyName,
         familyVersion: CONFIG.templates.familyVersion,
@@ -81,73 +119,11 @@ const create = async (amount, recipient) => {
         // For example,
         // dependencies: ['540a6803971d1880ec73a96cb97815a95d374cbad5d865925e5aa0432fcf1931539afe10310c122c5eaae15df61236079abbf4f258889359c4d175516934484a'],
         dependencies: [],
-        payloadSha512: createHash('sha512').update(axioscRequestBytes).digest('hex')
+        payloadSha512: createHash('sha512').update(reqBytes).digest('hex')
     }).finish();
 
     console.log(colors.yellow(`state addresses: ${stateAddress}`));
-    return await submitTransaction(transactionHeaderBytes, axioscRequestBytes);
-};
-
-const deleteTemplates = async (addresses) => {
-    const axioscRequest = newRPCRequest(JSON.stringify({addresses}), payloads_pb.Method.DELETE);
-    const axioscRequestBytes = axioscRequest.serializeBinary();
-
-    // do the sawtooth thang ;)
-    const transactionHeaderBytes = protobuf.TransactionHeader.encode({
-        familyName: CONFIG.templates.familyName,
-        familyVersion: CONFIG.templates.familyVersion,
-        inputs: addresses,
-        outputs: addresses,
-        signerPublicKey: signer.getPublicKey().asHex(),
-        // In this example, we're signing the batch with the same private key,
-        // but the batch can be signed by another party, in which case, the
-        // public key will need to be associated with that key.
-        batcherPublicKey: signer.getPublicKey().asHex(),
-        // In this example, there are no dependencies.  This list should include
-        // an previous transaction header signatures that must be applied for
-        // this transaction to successfully commit.
-        // For example,
-        // dependencies: ['540a6803971d1880ec73a96cb97815a95d374cbad5d865925e5aa0432fcf1931539afe10310c122c5eaae15df61236079abbf4f258889359c4d175516934484a'],
-        dependencies: [],
-        payloadSha512: createHash('sha512').update(axioscRequestBytes).digest('hex')
-    }).finish();
-
-    console.log(colors.yellow(`state addresses: ${addresses}`));
-    return await submitTransaction(transactionHeaderBytes, axioscRequestBytes);
-};
-
-const updateTemplate = async (amount, recipient) => {
-    const owner = ethUtil.pubToAddress(signer.getPublicKey().asBytes(), true).toString('hex');
-    const template = newTemplate(owner);
-
-    const axioscRequest = newRPCRequest(JSON.stringify(template), payloads_pb.Method.CREATE);
-    const axioscRequestBytes = axioscRequest.serializeBinary();
-
-    //compute state address
-    const stateAddress = CONFIG.templates.namespaces.templateAddress(template.owner, template.name, template.version);
-
-    // do the sawtooth thang ;)
-    const transactionHeaderBytes = protobuf.TransactionHeader.encode({
-        familyName: CONFIG.templates.familyName,
-        familyVersion: CONFIG.templates.familyVersion,
-        inputs: [stateAddress],
-        outputs: [stateAddress],
-        signerPublicKey: signer.getPublicKey().asHex(),
-        // In this example, we're signing the batch with the same private key,
-        // but the batch can be signed by another party, in which case, the
-        // public key will need to be associated with that key.
-        batcherPublicKey: signer.getPublicKey().asHex(),
-        // In this example, there are no dependencies.  This list should include
-        // an previous transaction header signatures that must be applied for
-        // this transaction to successfully commit.
-        // For example,
-        // dependencies: ['540a6803971d1880ec73a96cb97815a95d374cbad5d865925e5aa0432fcf1931539afe10310c122c5eaae15df61236079abbf4f258889359c4d175516934484a'],
-        dependencies: [],
-        payloadSha512: createHash('sha512').update(axioscRequestBytes).digest('hex')
-    }).finish();
-
-    console.log(colors.yellow(`state addresses: ${stateAddress}`));
-    return await submitTransaction(transactionHeaderBytes, axioscRequestBytes);
+    return await submitTransaction(transactionHeaderBytes, reqBytes);
 };
 
 const submitTransaction = async (transactionHeaderBytes, axioscRequestBytes) => {
@@ -209,14 +185,38 @@ const queryState = async (address) => {
         const response = await  axios(reqConfig);
         const data = response.data.data;
         data.forEach(entry => {
-            const data = new Buffer(entry.data, 'base64').toString('ascii');
-            const template = JSON.parse(data);
+            const data = Buffer.from(entry.data, 'base64');
+            const template_proto = template_pb.Template.deserializeBinary(data);
+            const template = template_proto.toObject();
 
+            const computedHash = getPOIHash(template_proto.getData())
+            let integrity;
+            if(computedHash === template.verification.proofOfIntegrityHash) {
+                integrity = `VALID - (Matching Hashes) computed (${computedHash}) == expected (${template.verification.proofOfIntegrityHash})`;
+            } else {
+                integrity = `INVALID - (Mismatch Hashes) computed (${computedHash}) != expected (${template.verification.proofOfIntegrityHash})`;
+            }
+            
+            const issuerPub = new Secp256k1PublicKey(Buffer.from(template.data.issuerPub, 'hex'));
+            let sigValidation;
+
+            if(context.verify(template.verification.signature, Buffer.from(computedHash, 'hex'), issuerPub)) {
+                sigValidation = `VALID - template data ${computedHash} signed by ${issuerPub.asHex()} ownership verified`;
+            } else {
+                sigValidation = `INVALID - template data ${computedHash} not signed by ${issuerPub.asHex()} ownership could not be verified`;
+            }
+
+            const createdAt = template.data.createdAt;
+            const version = template.data.version;
             const output = {
                 'state-address': entry.address,
                 'template': template,
-                'created-at': moment(new Date(template["created_at"] * 1000)).format('L'),
+                'created-at': moment(new Date(createdAt)).format('L'),
+                'version': `${version.major}.${version.minor}.${version.patch}`,
+                'data-integrity': integrity,
+                'signature-validation': sigValidation
             };
+
             console.log(prettyjson.render(output));
         });
 
@@ -228,6 +228,6 @@ const queryState = async (address) => {
 
 module.exports = {
     create,
-    deleteTemplates,
+    //deleteTemplates,
     queryState
 };

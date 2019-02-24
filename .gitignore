@@ -10,3 +10,7 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# 	#protoc -I ./protos ./protos/template.proto ./protos/payload.proto --js_out=import_style=commonjs,binary:./dev-cli/proto
+
+.idea

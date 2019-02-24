@@ -1,0 +1,31 @@
+syntax = "proto3";
+option go_package = "template_pb";
+package template_pb;
+
+import "google/protobuf/struct.proto";
+
+message Template {
+    Data data = 1;
+    Verification verification = 2;
+}
+
+message Data {
+    string issuer_pub = 1;
+    string name = 2;
+    string description = 3;
+    string type = 4;
+    int64 created_at = 5;
+    Version version = 6;
+    google.protobuf.Struct core_data = 7;
+}
+
+message Version {
+    int32 major = 1;
+    int32 minor = 2;
+    int32 patch = 3;
+}
+
+message Verification {
+    string signature = 1;
+    string proof_of_integrity_hash = 2;
+}

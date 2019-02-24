@@ -1,75 +1,66 @@
 package state
 
 import (
-	"github.com/rberg2/sawtooth-go-sdk/processor"
-	"time"
-	"encoding/json"
-	"github.com/rberg2/sawtooth-go-sdk/logging"
 	"fmt"
-	"github.com/BadgeForce/credential-template-engine/core/proto"
-	"github.com/BadgeForce/badgeforce-chain-node/core/common"
+	"time"
+
+	"github.com/golang/protobuf/proto"
+
+	"github.com/BadgeForce/credential-template-engine/core/template_pb"
+	utils "github.com/BadgeForce/sawtooth-utils"
+	"github.com/rberg2/sawtooth-go-sdk/logging"
+	"github.com/rberg2/sawtooth-go-sdk/processor"
 )
 
-// @Todo move CredentialTemplatePrefix to configuration
+//TODO: move CredentialTemplatePrefix to configuration
+
 // CredentialTemplatePrefix ...
 const CredentialTemplatePrefix = "credential:templates"
 
 var (
 	logger = logging.Get()
-	NameSpaceMngr *common.NamespaceMngr
+
+	// NameSpaceMngr ...
+	NameSpaceMngr *utils.NamespaceMngr
 )
 
+// State ...
 type State struct {
-	instance *common.State
+	instance *utils.State
 }
 
-type TransactionReceipt struct {
-	Date            int64  `json:"date"`
-	TemplateName    string `json:"template_name"`
-	TemplateVersion string `json:"template_version"`
-	StateAddress    string `json:"state_address"`
-	Method          string `json:"method"`
-}
-
-func (s *State) NewTemplateSavedReceipt(name, version, address string) (*TransactionReceipt, []byte, error) {
-	receipt := &TransactionReceipt{
-		Date:            time.Now().Unix(),
-		TemplateName:    name,
-		TemplateVersion: version,
-		StateAddress:    address,
-		Method: credential_template_engine_pb.Method_CREATE.String(),
-	}
-
-	b, err := json.Marshal(receipt)
-	return receipt, b, err
-}
-func (s *State) NewTemplateDeleteReceipt(name, version, address string) (*TransactionReceipt, []byte, error) {
-	receipt := &TransactionReceipt{
-		Date:            time.Now().Unix(),
-		TemplateName:    name,
-		TemplateVersion: version,
-		StateAddress:    address,
-		Method: credential_template_engine_pb.Method_DELETE.String(),
-	}
-
-	b, err := json.Marshal(receipt)
-	return receipt, b, err
-}
-
+// Context ...
 func (s *State) Context() *processor.Context {
 	return s.instance.Context
 }
 
-func (s *State) Save(template *CredentialTemplate) error {
-	address := template.StateAddress()
-	_, receiptBytes, err := s.NewTemplateSavedReceipt(template.Name, template.Version, address)
+// GetTxtRecpt returns a transaction receipt with correct data
+func (s *State) GetTxtRecpt(rpcMethod template_pb.Method, stateAddress string, template *template_pb.Template) (*template_pb.Receipt, []byte, error) {
+	var recpt template_pb.Receipt
+	recpt.Date = time.Now().Unix()
+	recpt.StateAddress = stateAddress
+	recpt.RpcMethod = rpcMethod
+	recpt.Template = template
+
+	b, err := proto.Marshal(&recpt)
+	return &recpt, b, err
+}
+
+// Save saves a template template to state
+func (s *State) Save(template *template_pb.Template) error {
+	address := TemplateStateAddress(
+		template.GetData().GetIssuerPub(),
+		template.GetData().GetName(),
+		template.GetData().GetVersion(),
+	)
+
+	_, receiptBytes, err := s.GetTxtRecpt(template_pb.Method_CREATE, address, template)
 	if err != nil {
 		logger.Warnf("unable to generate transaction receipt for template saved (%s)", err)
 	}
-
-	b, err := template.AsBytes()
+	b, err := proto.Marshal(template)
 	if err != nil {
-		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("(%s)", err)}
+		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("unable to marshal template proto (%s)", err)}
 	}
 
 	_, err = s.Context().SetState(map[string][]byte{address: b})
@@ -85,14 +76,15 @@ func (s *State) Save(template *CredentialTemplate) error {
 	return nil
 }
 
-func (s *State) Delete(addresses ...string) error {
+// Delete delete stored at each specified address in state
+func (s *State) Delete(issuerPub string, addresses ...string) error {
 	_, err := s.Context().DeleteState(addresses)
 	if err != nil {
 		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("unable to delete credential temlate (%s)", err)}
 	}
 
 	for _, address := range addresses {
-		_, receiptBytes, err := s.NewTemplateDeleteReceipt("", "", address)
+		_, receiptBytes, err := s.GetTxtRecpt(template_pb.Method_DELETE, address, nil)
 		if err != nil {
 			logger.Warnf("unable to generate transaction receipt for template saved (%s)", err)
 		}
@@ -107,29 +99,64 @@ func (s *State) Delete(addresses ...string) error {
 	return nil
 }
 
-func (s *State) GetTemplates(address ...string) ([]CredentialTemplate, error) {
+// GetTemplates get some templates stored at each specified address from state
+func (s *State) GetTemplates(issuerPub string, address ...string) ([]*template_pb.Template, error) {
+
+	if addrs, ok := HasValidOwnership(issuerPub, address...); !ok {
+		return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not get state invalid ownership of templates (%s)", addrs)}
+	}
+
 	state, err := s.Context().GetState(address)
 	if err != nil {
 		return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not get state (%s)", err)}
 	}
 
-	templates := make([]CredentialTemplate, 0)
+	templates := make([]*template_pb.Template, 0)
 	for _, value := range state {
-		var template CredentialTemplate
-		err := json.Unmarshal(value, &template)
+		var template template_pb.Template
+		err := proto.Unmarshal(value, &template)
 		if err != nil {
-			return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not unmarshal json data (%s)", err)}
+			return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not unmarshal proto data (%s)", err)}
 		}
-		templates = append(templates, template)
+		templates = append(templates, &template)
 	}
 
 	return templates, nil
 }
 
-func NewTemplateState(context *processor.Context) *State {
-	return &State{common.NewStateInstance(context)}
+// HasValidOwnership using the first 30 bytes of a public key this func will
+// verify that the pub key is the first 30 bytes of each address indicating ownership.
+// If validation for one address fails, the entire validation process is will fail, array of address
+// that failed validation is returned along with a bool
+func HasValidOwnership(issuerPub string, addresses ...string) ([]string, bool) {
+	invalid := make([]string, 0)
+	prefix := issuerPub[0:30]
+	for _, address := range addresses {
+		if address[6:30] != prefix {
+			invalid = append(invalid, address)
+		}
+	}
+
+	return invalid, len(invalid) == 0
 }
 
-func init()  {
-	NameSpaceMngr = common.NewNamespaceMngr().RegisterNamespaces(CredentialTemplatePrefix)
+// TemplateStateAddress ...
+func TemplateStateAddress(issuerPub, name string, version *template_pb.Version) string {
+	vrsn := fmt.Sprintf("%x.%x.%x", version.GetMajor(), version.GetMinor(), version.GetPatch())
+	o := utils.NewPart(issuerPub, 0, 30)
+	n := utils.NewPart(name, 0, 30)
+	v := utils.NewPart(vrsn, 0, 4)
+
+	addressParts := []*utils.AddressPart{o, n, v}
+	address, _ := utils.NewAddress(NameSpaceMngr.NameSpaces[0]).AddParts(addressParts...).Build()
+	return address
+}
+
+// NewTemplateState ...
+func NewTemplateState(context *processor.Context) *State {
+	return &State{utils.NewStateInstance(context)}
+}
+
+func init() {
+	NameSpaceMngr = utils.NewNamespaceMngr().RegisterNamespaces(CredentialTemplatePrefix)
 }

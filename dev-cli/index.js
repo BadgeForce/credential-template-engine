@@ -19,7 +19,7 @@ cli
     .argument('<addresses...>', 'state address for query', cli.LIST)
     .action(async (args, options, logger) => {
         try {
-            await credentialTemplates.deleteTemplates(args.addresses);
+            await credentialTemplates.create(args.addresses);
         } catch (e) {
             logger.error(`error deleting template(s): ${e}`)
         }
