@@ -46,30 +46,6 @@ func (s *State) GetTxtRecpt(rpcMethod template_pb.Method, stateAddress string, t
 	return &recpt, b, err
 }
 
-// VerifyTemplate ...
-func VerifyTemplate(txtSignerPub string, template *template_pb.Template) (bool, error) {
-	b, err := proto.Marshal(template.GetData())
-	if err != nil {
-		return false, fmt.Errorf("error: could not marshal proto (%s)", err)
-	}
-
-	expectedHash := template.GetVerification().GetProofOfIntegrityHash()
-	if hash, ok := utils.VerifyPOIHash(b, expectedHash); !ok {
-		return false, fmt.Errorf("error: proof of integrity hash invalid got (%s) want (%s)", hash, expectedHash)
-	}
-
-	issuerPub := template.GetData().GetIssuerPub()
-	sig := template.GetVerification().GetSignature()
-
-	if ok := utils.VerifySig(sig, []byte(txtSignerPub), b, false); !ok {
-		return false, fmt.Errorf("error: transaction signer must also be owner who signs template (%s)", txtSignerPub)
-	} else if txtSignerPub != issuerPub {
-		return false, fmt.Errorf("error: transaction signer public key must match template issuer got (%s) want (%s)", issuerPub, txtSignerPub)
-	}
-
-	return true, nil
-}
-
 // Save saves a template template to state
 func (s *State) Save(template *template_pb.Template) error {
 	address := TemplateStateAddress(
@@ -82,7 +58,6 @@ func (s *State) Save(template *template_pb.Template) error {
 	if err != nil {
 		logger.Warnf("unable to generate transaction receipt for template saved (%s)", err)
 	}
-
 	b, err := proto.Marshal(template)
 	if err != nil {
 		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("unable to marshal template proto (%s)", err)}
@@ -157,7 +132,7 @@ func HasValidOwnership(issuerPub string, addresses ...string) ([]string, bool) {
 	invalid := make([]string, 0)
 	prefix := issuerPub[0:30]
 	for _, address := range addresses {
-		if address[0:30] != prefix {
+		if address[6:30] != prefix {
 			invalid = append(invalid, address)
 		}
 	}

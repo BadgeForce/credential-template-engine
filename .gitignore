@@ -12,3 +12,5 @@
 *.out
 
 # 	#protoc -I ./protos ./protos/template.proto ./protos/payload.proto --js_out=import_style=commonjs,binary:./dev-cli/proto
+
+.idea

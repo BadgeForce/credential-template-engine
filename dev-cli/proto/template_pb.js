@@ -11,6 +11,7 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 goog.exportSymbol('proto.template_pb.Data', null, global);
 goog.exportSymbol('proto.template_pb.Template', null, global);
 goog.exportSymbol('proto.template_pb.Verification', null, global);
@@ -270,7 +271,8 @@ proto.template_pb.Data.toObject = function(includeInstance, msg) {
     description: jspb.Message.getFieldWithDefault(msg, 3, ""),
     type: jspb.Message.getFieldWithDefault(msg, 4, ""),
     createdAt: jspb.Message.getFieldWithDefault(msg, 5, 0),
-    version: (f = msg.getVersion()) && proto.template_pb.Version.toObject(includeInstance, f)
+    version: (f = msg.getVersion()) && proto.template_pb.Version.toObject(includeInstance, f),
+    coreData: (f = msg.getCoreData()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -331,6 +333,11 @@ proto.template_pb.Data.deserializeBinaryFromReader = function(msg, reader) {
       var value = new proto.template_pb.Version;
       reader.readMessage(value,proto.template_pb.Version.deserializeBinaryFromReader);
       msg.setVersion(value);
+      break;
+    case 7:
+      var value = new google_protobuf_struct_pb.Struct;
+      reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
+      msg.setCoreData(value);
       break;
     default:
       reader.skipField();
@@ -402,6 +409,14 @@ proto.template_pb.Data.serializeBinaryToWriter = function(message, writer) {
       6,
       f,
       proto.template_pb.Version.serializeBinaryToWriter
+    );
+  }
+  f = message.getCoreData();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      google_protobuf_struct_pb.Struct.serializeBinaryToWriter
     );
   }
 };
@@ -509,6 +524,36 @@ proto.template_pb.Data.prototype.clearVersion = function() {
  */
 proto.template_pb.Data.prototype.hasVersion = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional google.protobuf.Struct core_data = 7;
+ * @return {?proto.google.protobuf.Struct}
+ */
+proto.template_pb.Data.prototype.getCoreData = function() {
+  return /** @type{?proto.google.protobuf.Struct} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 7));
+};
+
+
+/** @param {?proto.google.protobuf.Struct|undefined} value */
+proto.template_pb.Data.prototype.setCoreData = function(value) {
+  jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+proto.template_pb.Data.prototype.clearCoreData = function() {
+  this.setCoreData(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.template_pb.Data.prototype.hasCoreData = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 

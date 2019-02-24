@@ -16,6 +16,7 @@ type CreateTemplateHandler struct {
 // Handle ...
 func (handler *CreateTemplateHandler) Handle(request *processor_pb2.TpProcessRequest, context *processor.Context, reqData interface{}) error {
 	create := reqData.(*template_pb.Create)
+
 	return state.NewTemplateState(context).Save(create.GetParams())
 }
 
