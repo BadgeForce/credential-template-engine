@@ -1,8 +1,8 @@
 package rpc
 
 import (
-	"github.com/BadgeForce/credential-template-engine/core/template_pb"
-	utils "github.com/BadgeForce/sawtooth-utils"
+	template_pb "github.com/BadgeForce/credential-template-engine/core/template_pb"
+	"github.com/BadgeForce/sawtooth-utils"
 	"github.com/golang/protobuf/proto"
 	"github.com/rberg2/sawtooth-go-sdk/processor"
 	"github.com/rberg2/sawtooth-go-sdk/protobuf/processor_pb2"

@@ -6,8 +6,9 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/BadgeForce/credential-template-engine/core/template_pb"
-	utils "github.com/BadgeForce/sawtooth-utils"
+	template_pb "github.com/BadgeForce/credential-template-engine/core/template_pb"
+	"github.com/BadgeForce/credential-template-engine/core/verifier"
+	"github.com/BadgeForce/sawtooth-utils"
 	"github.com/rberg2/sawtooth-go-sdk/logging"
 	"github.com/rberg2/sawtooth-go-sdk/processor"
 )
@@ -101,8 +102,7 @@ func (s *State) Delete(issuerPub string, addresses ...string) error {
 
 // GetTemplates get some templates stored at each specified address from state
 func (s *State) GetTemplates(issuerPub string, address ...string) ([]*template_pb.Template, error) {
-
-	if addrs, ok := HasValidOwnership(issuerPub, address...); !ok {
+	if addrs, ok := verifier.HasValidOwnership(issuerPub, address...); !ok {
 		return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not get state invalid ownership of templates (%s)", addrs)}
 	}
 
@@ -122,22 +122,6 @@ func (s *State) GetTemplates(issuerPub string, address ...string) ([]*template_p
 	}
 
 	return templates, nil
-}
-
-// HasValidOwnership using the first 30 bytes of a public key this func will
-// verify that the pub key is the first 30 bytes of each address indicating ownership.
-// If validation for one address fails, the entire validation process is will fail, array of address
-// that failed validation is returned along with a bool
-func HasValidOwnership(issuerPub string, addresses ...string) ([]string, bool) {
-	invalid := make([]string, 0)
-	prefix := issuerPub[0:30]
-	for _, address := range addresses {
-		if address[6:30] != prefix {
-			invalid = append(invalid, address)
-		}
-	}
-
-	return invalid, len(invalid) == 0
 }
 
 // TemplateStateAddress ...

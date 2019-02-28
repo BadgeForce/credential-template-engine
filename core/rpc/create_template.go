@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	"github.com/BadgeForce/credential-template-engine/core/template_pb"
+	template_pb "github.com/BadgeForce/credential-template-engine/core/template_pb"
 
 	"github.com/BadgeForce/credential-template-engine/core/state"
 	"github.com/rberg2/sawtooth-go-sdk/processor"

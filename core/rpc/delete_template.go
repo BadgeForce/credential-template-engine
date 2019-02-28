@@ -2,9 +2,10 @@ package rpc
 
 import (
 	"fmt"
+	"github.com/BadgeForce/credential-template-engine/core/verifier"
 
 	"github.com/BadgeForce/credential-template-engine/core/state"
-	"github.com/BadgeForce/credential-template-engine/core/template_pb"
+	template_pb "github.com/BadgeForce/credential-template-engine/core/template_pb"
 	"github.com/rberg2/sawtooth-go-sdk/processor"
 	"github.com/rberg2/sawtooth-go-sdk/protobuf/processor_pb2"
 )
@@ -18,7 +19,7 @@ type DeleteTemplatesHandler struct {
 func (handler *DeleteTemplatesHandler) Handle(request *processor_pb2.TpProcessRequest, context *processor.Context, rpcData interface{}) error {
 	delete := rpcData.(*template_pb.Delete)
 	issuerPub := request.GetHeader().GetSignerPublicKey()
-	if addresses, valid := state.HasValidOwnership(issuerPub, delete.GetAddresses()...); !valid {
+	if addresses, valid := verifier.HasValidOwnership(issuerPub, delete.GetAddresses()...); !valid {
 		return &processor.InvalidTransactionError{Msg: fmt.Sprintf("unable to delete credential template(s) invalid ownership (%s)", addresses)}
 	}
 

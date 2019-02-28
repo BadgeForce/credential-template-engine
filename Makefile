@@ -11,16 +11,16 @@ docker-image:
 	docker build -f ${DOCKERFILE} -t ${OUT} .
 
 deps:
-	GO111MODULES=on go get -v ${PKG}
+	GO111MODULES=on vgo get -v ${PKG}
 
 build:
-	GO111MODULES=on go build -i -v -o ${OUT} ${PKG}
+	GO111MODULES=on vgo build -i -v -o ${OUT} ${PKG}
 
 test:
-	GO111MODULES=on go test -short ${PKG_LIST}
+	GO111MODULES=on vgo test -short ${PKG_LIST}
 
 vet:
-	GO111MODULES=on go vet ${PKG_LIST}
+	GO111MODULES=on vgo vet ${PKG_LIST}
 
 lint:
 	@for file in ${GO_FILES} ;  do \
