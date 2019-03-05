@@ -3,7 +3,7 @@ package verifier
 import (
 	"fmt"
 	template_pb "github.com/BadgeForce/credential-template-engine/core/template_pb"
-	utils "github.com/BadgeForce/sawtooth-utils"
+	"github.com/BadgeForce/sawtooth-utils"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -13,7 +13,6 @@ func VerifyTemplate(txtSignerPub string, template *template_pb.Template) error {
 	if err != nil {
 		return fmt.Errorf("error: could not marshal proto (%s)", err)
 	}
-
 	expectedHash := template.GetVerification().GetProofOfIntegrityHash()
 	if hash, ok := utils.VerifyPOIHash(b, expectedHash); !ok {
 		return fmt.Errorf("error: proof of integrity hash invalid got (%s) want (%s)", hash, expectedHash)

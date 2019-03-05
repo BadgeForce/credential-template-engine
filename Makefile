@@ -1,5 +1,5 @@
 OUT := credential-template-engine
-PKG := github.com/BadgeForce/credential-template-engine/cmd
+PKG := ./cmd
 DOCKERFILE := ./build/package/Dockerfile
 VERSION := $(shell git describe --always --long --dirty)
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
@@ -14,7 +14,7 @@ deps:
 	GO111MODULES=on vgo get -v ${PKG}
 
 build:
-	GO111MODULES=on vgo build -i -v -o ${OUT} ${PKG}
+	GO111MODULES=on vgo build -v -o ${OUT} ${PKG}
 
 test:
 	GO111MODULES=on vgo test -short ${PKG_LIST}
