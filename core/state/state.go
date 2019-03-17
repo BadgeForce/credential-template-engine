@@ -6,9 +6,9 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	template_pb "github.com/BadgeForce/credential-template-engine/core/template_pb"
 	"github.com/BadgeForce/credential-template-engine/core/verifier"
 	"github.com/BadgeForce/sawtooth-utils"
+	"github.com/BadgeForce/sawtooth-utils/protos/templates_pb"
 	"github.com/rberg2/sawtooth-go-sdk/logging"
 	"github.com/rberg2/sawtooth-go-sdk/processor"
 )
@@ -36,8 +36,8 @@ func (s *State) Context() *processor.Context {
 }
 
 // GetTxtRecpt returns a transaction receipt with correct data
-func (s *State) GetTxtRecpt(rpcMethod template_pb.Method, stateAddress string, template *template_pb.Template) (*template_pb.Receipt, []byte, error) {
-	var recpt template_pb.Receipt
+func (s *State) GetTxtRecpt(rpcMethod templates_pb.Method, stateAddress string, template *templates_pb.Template) (*templates_pb.Receipt, []byte, error) {
+	var recpt templates_pb.Receipt
 	recpt.Date = time.Now().Unix()
 	recpt.StateAddress = stateAddress
 	recpt.RpcMethod = rpcMethod
@@ -48,14 +48,14 @@ func (s *State) GetTxtRecpt(rpcMethod template_pb.Method, stateAddress string, t
 }
 
 // Save saves a template template to state
-func (s *State) Save(template *template_pb.Template) error {
+func (s *State) Save(template *templates_pb.Template) error {
 	address := TemplateStateAddress(
 		template.GetData().GetIssuerPub(),
 		template.GetData().GetName(),
 		template.GetData().GetVersion(),
 	)
 
-	_, receiptBytes, err := s.GetTxtRecpt(template_pb.Method_CREATE, address, template)
+	_, receiptBytes, err := s.GetTxtRecpt(templates_pb.Method_CREATE, address, template)
 	if err != nil {
 		logger.Warnf("unable to generate transaction receipt for template saved (%s)", err)
 	}
@@ -85,7 +85,7 @@ func (s *State) Delete(issuerPub string, addresses ...string) error {
 	}
 
 	for _, address := range addresses {
-		_, receiptBytes, err := s.GetTxtRecpt(template_pb.Method_DELETE, address, nil)
+		_, receiptBytes, err := s.GetTxtRecpt(templates_pb.Method_DELETE, address, nil)
 		if err != nil {
 			logger.Warnf("unable to generate transaction receipt for template saved (%s)", err)
 		}
@@ -101,7 +101,7 @@ func (s *State) Delete(issuerPub string, addresses ...string) error {
 }
 
 // GetTemplates get some templates stored at each specified address from state
-func (s *State) GetTemplates(issuerPub string, address ...string) ([]*template_pb.Template, error) {
+func (s *State) GetTemplates(issuerPub string, address ...string) ([]*templates_pb.Template, error) {
 	if addrs, ok := verifier.HasValidOwnership(issuerPub, address...); !ok {
 		return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not get state invalid ownership of templates (%s)", addrs)}
 	}
@@ -111,9 +111,9 @@ func (s *State) GetTemplates(issuerPub string, address ...string) ([]*template_p
 		return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not get state (%s)", err)}
 	}
 
-	templates := make([]*template_pb.Template, 0)
+	templates := make([]*templates_pb.Template, 0)
 	for _, value := range state {
-		var template template_pb.Template
+		var template templates_pb.Template
 		err := proto.Unmarshal(value, &template)
 		if err != nil {
 			return nil, &processor.InvalidTransactionError{Msg: fmt.Sprintf("could not unmarshal proto data (%s)", err)}
@@ -125,7 +125,7 @@ func (s *State) GetTemplates(issuerPub string, address ...string) ([]*template_p
 }
 
 // TemplateStateAddress ...
-func TemplateStateAddress(issuerPub, name string, version *template_pb.Version) string {
+func TemplateStateAddress(issuerPub, name string, version *templates_pb.Version) string {
 	vrsn := fmt.Sprintf("%x.%x.%x", version.GetMajor(), version.GetMinor(), version.GetPatch())
 	o := utils.NewPart(issuerPub, 0, 30)
 	n := utils.NewPart(name, 0, 30)

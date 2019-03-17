@@ -2,13 +2,13 @@ package verifier
 
 import (
 	"fmt"
-	template_pb "github.com/BadgeForce/credential-template-engine/core/template_pb"
 	"github.com/BadgeForce/sawtooth-utils"
+	"github.com/BadgeForce/sawtooth-utils/protos/templates_pb"
 	"github.com/golang/protobuf/proto"
 )
 
 // VerifyTemplate ...
-func VerifyTemplate(txtSignerPub string, template *template_pb.Template) error {
+func VerifyTemplate(txtSignerPub string, template *templates_pb.Template) error {
 	b, err := proto.Marshal(template.GetData())
 	if err != nil {
 		return fmt.Errorf("error: could not marshal proto (%s)", err)

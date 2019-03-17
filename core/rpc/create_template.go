@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	template_pb "github.com/BadgeForce/credential-template-engine/core/template_pb"
+	"github.com/BadgeForce/sawtooth-utils/protos/templates_pb"
 
 	"github.com/BadgeForce/credential-template-engine/core/state"
 	"github.com/rberg2/sawtooth-go-sdk/processor"
@@ -15,7 +15,7 @@ type CreateTemplateHandler struct {
 
 // Handle ...
 func (handler *CreateTemplateHandler) Handle(request *processor_pb2.TpProcessRequest, context *processor.Context, reqData interface{}) error {
-	create := reqData.(*template_pb.Create)
+	create := reqData.(*templates_pb.Create)
 
 	return state.NewTemplateState(context).Save(create.GetParams())
 }
@@ -26,4 +26,4 @@ func (handler *CreateTemplateHandler) Method() string {
 }
 
 // CreateHandle ...
-var CreateHandle = &CreateTemplateHandler{template_pb.Method_CREATE.String()}
+var CreateHandle = &CreateTemplateHandler{templates_pb.Method_CREATE.String()}

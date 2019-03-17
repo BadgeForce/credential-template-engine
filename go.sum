@@ -1,5 +1,7 @@
 github.com/BadgeForce/sawtooth-utils v0.0.0-20190224091258-e591835b9204 h1:qywAB1EqObjsxar3hlSV+x8tx2K0jFeozNl4lS4aTgg=
 github.com/BadgeForce/sawtooth-utils v0.0.0-20190224091258-e591835b9204/go.mod h1:kSrxE/yCWmXT2Q84IFZdA04DErmspFSU2Pn5i2vE5/o=
+github.com/BadgeForce/sawtooth-utils v0.0.0-20190317111244-a840bc682cf5 h1:oSK8oBsshZYEpqC++k78LN/eDRXhQTyAJs9hZKtky+U=
+github.com/BadgeForce/sawtooth-utils v0.0.0-20190317111244-a840bc682cf5/go.mod h1:we43FpUo0rdIwzCWyrKMAMySlwfZA0co6Jewl4MZ4yY=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 h1:w1UutsfOrms1J05zt7ISrnJIXKzwaspym5BTKGx93EI=
 github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412/go.mod h1:WPjqKcmVOxf0XSf3YxCJs6N6AOSrOx3obionmG7T0y0=
